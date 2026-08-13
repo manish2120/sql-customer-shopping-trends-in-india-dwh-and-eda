@@ -1,3 +1,25 @@
+/*
+----------------------------------------
+QUALITY CHECKS - SILVER LAYER
+----------------------------------------
+Script Purpose : 
+This script is used to perform various quality checks for the data consistency, accuracy and standardization in the silver layer.
+It includes checks for :
+    - NULL and Empty Values.
+    - Data Standardization and Consistency.
+    - Duplicate Values.
+
+Usage :
+    - Run all the queries one by one.
+    - Check the results.
+    - If all queries returns results as per the expectations, then the data is clean.
+    - If any query doesn't returns results as per the expectations, then there is an issue with the data.
+*/
+
+-----------------------------------------------------
+-- Checks 'silver.csti_customer_shopping_behavior'
+-----------------------------------------------------
+
 -- Check For NULL and Empty Values in Size and Delivery Speed
 -- Expectation : 0
 SELECT 
@@ -12,9 +34,9 @@ SELECT
     delivery_speed, 
     delivery_time_in_days
 FROM silver.csti_customer_shopping_behavior
-WHERE (delivery_speed = 'Same Day'  AND TRY_CAST(delivery_time_in_days AS INT) != 0)
-   OR (delivery_speed = 'Express'   AND TRY_CAST(delivery_time_in_days AS INT) NOT BETWEEN 1 AND 2)
-   OR (delivery_speed = 'Standard'  AND TRY_CAST(delivery_time_in_days AS INT) <= 2);
+WHERE (delivery_speed = 'Same Day' AND TRY_CAST(delivery_time_in_days AS INT) != 0)
+   OR (delivery_speed = 'Express'  AND TRY_CAST(delivery_time_in_days AS INT) NOT BETWEEN 1 AND 2)
+   OR (delivery_speed = 'Standard' AND TRY_CAST(delivery_time_in_days AS INT) <= 2);
 
 
 -- Check NULL values
