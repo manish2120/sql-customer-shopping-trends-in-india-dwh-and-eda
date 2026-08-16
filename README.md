@@ -19,6 +19,7 @@ sql-customer-shopping-trends-in-india-data-warehouse/
 │   ├── data_model.png                  # PNG image of data model
 │   ├── data_catalog.md                 # Data catalog
 ├── scripts/                     # SQL scripts
+│   ├── rename_columns.py               # Python script for renaming columns to standard format
 │   ├── bronze
 │   │   ├── ddl_bronze.sql              # DDL for bronze layer
 │   │   └── proc_load_bronze.sql        # Stored procedure for loading data into bronze layer
