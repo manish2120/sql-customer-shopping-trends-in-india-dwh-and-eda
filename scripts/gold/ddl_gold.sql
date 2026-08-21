@@ -29,7 +29,6 @@ GO
 -- Create View gold.dim_customers
 CREATE VIEW gold.dim_customers AS
 SELECT 
-	ROW_NUMBER() OVER(ORDER BY customer_id) AS customer_key, -- Surrogate Key
 	s.customer_id,
 	s.age,
 	s.gender,
@@ -58,7 +57,7 @@ GO
 -- Create View gold.dim_products
 CREATE VIEW gold.dim_products AS 
 SELECT 
-	ROW_NUMBER() OVER (ORDER BY category) AS product_key, -- Surrogate Key
+	CONVERT(NVARCHAR(64), HASHBYTES('SHA2_256', CONCAT(category, item_purchased, brand, color, size)), 2) AS product_key, -- Surrogate Key
 	category,
 	item_purchased,
 	brand,
@@ -87,9 +86,8 @@ GO
 -- Create View gold.fact_transactions
 CREATE VIEW gold.fact_transactions AS
 SELECT
-	ROW_NUMBER() OVER (ORDER BY transaction_id) AS transaction_key, -- Surrogate Key
-	s.transaction_id,
-	c.customer_key,
+	s.transaction_id,	
+	c.customer_id,
 	p.product_key,
 	s.online_offline,
 	s.online_store,
@@ -112,10 +110,10 @@ ON	s.category			 = p.category
     AND s.color          = p.color
     AND s.size           = p.size
 LEFT JOIN gold.dim_customers c
-ON 	s.customer_id			      = c.customer_id
-	AND s.age				          = c.age
-	AND s.gender			        = c.gender
-	AND s.location			      = c.location
+ON 	s.customer_id			  		= c.customer_id
+	AND s.age				  				= c.age
+	AND s.gender			  			= c.gender
+	AND s.location			  		= c.location
 	AND s.subscription_status = c.subscription_status;
 GO
 
@@ -130,38 +128,34 @@ GO
 -- Create View gold.agg_customer_summary
 CREATE VIEW gold.agg_customer_summary AS
 SELECT 
-  st.customer_key,
   st.customer_id,
   COUNT(st.transaction_id) AS total_transactions,
-  CONCAT(
+  
 	  TRY_CAST(
 		  COUNT(
 			  CASE 
 				WHEN st.online_offline = 'Online' THEN 1 
 			  END
-			) * 100.0 / COUNT(*) AS DECIMAL(18, 2)
-		), '%'
+			) * 100.0 / COUNT(*) AS DECIMAL(5, 2)
   ) AS online_shopping_rate,
-  CONCAT(
+  
 		TRY_CAST(
 			COUNT(
 				CASE 
 					WHEN st.online_offline = 'Offline' THEN 1 
 				END
-			) * 100.0 / COUNT(*) AS DECIMAL(18, 2)
-		), '%'
-	) AS offline_shopping_rate
+			) * 100.0 / COUNT(*) AS DECIMAL(5, 2)
+		) AS offline_shopping_rate
 FROM (
 	SELECT
-		c.customer_key,
 		c.customer_id,
 		t.transaction_id,
 		t.online_offline
 	FROM gold.dim_customers c
 	LEFT JOIN gold.fact_transactions t
-	ON c.customer_key = t.customer_key
+	ON c.customer_id = t.customer_id
 ) st
-GROUP BY st.customer_id, st.customer_key;
+GROUP BY st.customer_id;
 GO
 
 -----------------------------------------------------
@@ -177,13 +171,13 @@ CREATE VIEW gold.agg_customer_shopping_platform AS
 SELECT 
 	payment_method,
 	COUNT(transaction_id) AS total_transactions,
-	CONCAT(TRY_CAST(COUNT(CASE WHEN online_offline = 'Online' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(18, 2)), '%') AS online_shopping_rate, -- Tells how many percent users did shopping online
-	CONCAT(TRY_CAST(COUNT(CASE WHEN online_offline = 'Offline' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(18, 2)), '%') AS offline_shopping_rate -- Tells how many percent users did shopping offline
+	TRY_CAST(COUNT(CASE WHEN online_offline = 'Online' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(5, 2)) AS online_shopping_rate, -- Tells how many percent users did shopping online
+	TRY_CAST(COUNT(CASE WHEN online_offline = 'Offline' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(5, 2)) AS offline_shopping_rate -- Tells how many percent users did shopping offline
 FROM gold.fact_transactions
 GROUP BY payment_method;
 GO
 
--------------------------------------
+-----------------------------------------------------
 -- Create Aggregate Table : gold.agg_fulfillment_performance
 -----------------------------------------------------
 -- Drop View gold.agg_fulfillment_performance if it exists
@@ -202,8 +196,8 @@ SELECT
   END AS expected_delivery_days,
   AVG(delivery_time_in_days) AS avg_delivery_days,
   AVG(review_rating) AS avg_rating,
-  CONCAT(TRY_CAST(COUNT(CASE WHEN return_status = 'Returned' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(18, 2)), '%') AS returned_rate,
-  CONCAT(TRY_CAST(COUNT(CASE WHEN return_status = 'Not Returned' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(18, 2)), '%') AS not_returned_rate
+  TRY_CAST(COUNT(CASE WHEN return_status = 'Returned' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(5, 2)) AS returned_rate,
+  TRY_CAST(COUNT(CASE WHEN return_status = 'Not Returned' THEN 1 END) * 100.0 / COUNT(*) AS DECIMAL(5, 2)) AS not_returned_rate
 FROM gold.fact_transactions
 GROUP BY delivery_speed;
 GO
