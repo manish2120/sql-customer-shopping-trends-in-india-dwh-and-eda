@@ -26,6 +26,9 @@ TRUNCATE TABLE silver.csti_customer_shopping_behavior;
 
 PRINT '>> Inserting Cleansed Data into Silver Table...';
 DECLARE @RowsAffected INT;
+DECLARE @batch_time DATETIME, @end_time DATETIME;
+
+SET @batch_time = GETDATE();
 INSERT INTO silver.csti_customer_shopping_behavior (
     transaction_id,
     customer_id,
@@ -52,7 +55,8 @@ INSERT INTO silver.csti_customer_shopping_behavior (
     review_rating,
     return_status,
     previous_purchases,
-    frequency_of_purchases
+    frequency_of_purchases,
+    dwh_create_date
 )
 SELECT TRIM(transaction_id) AS transaction_id,
     TRIM(customer_id) AS customer_id,
@@ -72,7 +76,7 @@ SELECT TRIM(transaction_id) AS transaction_id,
     ISNULL(NULLIF(TRIM(size), ''), 'N/A') AS size,
     TRY_CAST(TRIM(quantity) AS INT) AS quantity,
     TRY_CAST(TRIM(purchase_amount_inr) AS DECIMAL(18, 2)) AS purchase_amount_inr,
-    TRY_CAST(TRIM(discount_percent) AS INT) AS discount_percent,
+    discount_percent,
     COALESCE(NULLIF(TRIM(festival_sale), ''), 'Regular Days') AS festival_sale,
     shipping_charge_inr,
     CASE
@@ -87,9 +91,13 @@ SELECT TRIM(transaction_id) AS transaction_id,
     review_rating,
     return_status,
     previous_purchases,
-    frequency_of_purchases
+    frequency_of_purchases,
+    @batch_time AS dwh_create_date
 FROM bronze.csti_customer_shopping_behavior;
+
+SET @end_time = GETDATE();
 SET @RowsAffected = @@ROWCOUNT;
 END;
 PRINT '>> Inserted Data into Silver Layer Successfully...';
-PRINT '>> Rows Affected: ' + CAST(@RowsAffected AS NVARCHAR(10));
+PRINT '>> Rows Affected: ' + CAST(@RowsAffected AS NVARCHAR(10))
+PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds.';
