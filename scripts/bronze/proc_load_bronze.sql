@@ -31,7 +31,7 @@ BEGIN
 	PRINT '================================';
 
 		BULK INSERT bronze.csti_customer_shopping_behavior
-		FROM 'C:\SQL CSTI\customer_shopping_behavior_renamed_columns.csv'
+		FROM 'C:\SQL CSTI\customer_shopping_behavior_renamed_columns.csv' -- Provide the path to the CSV file as per location of the file.
 		WITH (
 			FIRSTROW = 2,
 			FIELDTERMINATOR = ',',
