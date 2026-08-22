@@ -1,4 +1,4 @@
-# Customer Shopping Trends in India - Data Warehouse Project
+# Customer Shopping Trends in India - Data Warehouse & Analytics Project
 
 This project implements a **Data Warehouse** for analyzing customer shopping trends in India, following a **Kimball Dimensional Modeling** approach. The solution is built using **SQL Server** and demonstrates the complete ETL (Extract, Transform, Load) process from source tables to a dimensional model.
 
@@ -9,7 +9,7 @@ sql-customer-shopping-trends-in-india-data-warehouse/
 ├── datasets/                    # Source data files
 │   ├── customer_shopping_behavior.csv
 │   ├── customer_shopping_behavior_renamed_columns.csv
-├── docs/                        # Documentation
+├── dwh/docs/                        # Documentation
 │   ├── naming_conventions.md           # Naming conventions which are used in this project
 │   ├── data_architecture.drawio        # Draw.io file for data architecture
 │   ├── data_architecture.png           # PNG image of data architecture
@@ -18,7 +18,7 @@ sql-customer-shopping-trends-in-india-data-warehouse/
 │   ├── data_model.drawio               # Draw.io file for data model
 │   ├── data_model.png                  # PNG image of data model
 │   ├── data_catalog.md                 # Data catalog
-├── scripts/                     # SQL scripts
+├── dwh/scripts/                     # SQL scripts
 │   ├── rename_columns.py               # Python script for renaming columns to standard format
 │   ├── bronze
 │   │   ├── ddl_bronze.sql              # DDL for bronze layer
@@ -30,14 +30,14 @@ sql-customer-shopping-trends-in-india-data-warehouse/
 │   ├── gold
 │   │   ├── ddl_gold.sql                # DDL for gold layer
 │   │   └── quality_checks_gold.sql     # Quality checks for gold layer
-├── tests/                       # Test scripts
+├── dwh/tests/                       # Test scripts
 │   │   └── quality_checks_silver.sql   # Quality checks for silver layer
 │   │   └── quality_checks_gold.sql     # Quality checks for gold layer
 └── README.md
 ```
 
 ## 🏗️ Architecture
-![alt text](docs/data_architecture.png)
+![alt text](dwh/docs/data_architecture.png)
 
 The project follows a **Three-Layer Architecture**:
 
@@ -46,10 +46,10 @@ The project follows a **Three-Layer Architecture**:
 3.  **Gold Layer (Dimensional Model)**: Star schema for analytics.
 
 ## 📊 Data Flow
-![alt text](docs/data_flow.png)
+![alt text](dwh/docs/data_flow.png)
 
 ## 🔍 Data Model
-![alt text](docs/data_model.png)
+![alt text](dwh/docs/data_model.png)
 
 ### 🟤 Bronze Layer
 - The columns has been renamed using python script `rename_columns.py` before loading into the bronze layer.
