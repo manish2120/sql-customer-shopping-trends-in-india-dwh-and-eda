@@ -89,6 +89,7 @@ SELECT
 	s.transaction_id,	
 	c.customer_id,
 	p.product_key,
+	s.purchase_date,
 	s.online_offline,
 	s.online_store,
 	s.quantity,
