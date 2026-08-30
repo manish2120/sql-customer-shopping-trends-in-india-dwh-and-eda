@@ -38,11 +38,9 @@ WHERE (delivery_speed = 'Same Day' AND TRY_CAST(delivery_time_in_days AS INT) !=
    OR (delivery_speed = 'Express'  AND TRY_CAST(delivery_time_in_days AS INT) NOT BETWEEN 1 AND 2)
    OR (delivery_speed = 'Standard' AND TRY_CAST(delivery_time_in_days AS INT) <= 2);
 
-
 -- Check NULL values
 -- Expectation : No Result
 SELECT 
 size
 FROM silver.csti_customer_shopping_behavior
 WHERE size IS NULL OR size = '';
-
