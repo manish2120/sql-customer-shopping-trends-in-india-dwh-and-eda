@@ -16,7 +16,14 @@ BEGIN
 	PRINT '>> Load Bronze Layer: bronze.csti_customer_shopping_behavior';
 	PRINT '================================';
 
-	DECLARE @start_time DATETIME, @end_time DATETIME;
+	DECLARE 
+		@start_time DATETIME, 
+		@end_time DATETIME,
+		@rows_inserted INT,
+		@status NVARCHAR(20),
+		@duration_seconds INT,
+		@error_message NVARCHAR(MAX);
+
 	BEGIN TRY
 
 	PRINT '================================';
@@ -24,6 +31,7 @@ BEGIN
 	PRINT '================================';
 
 	SET @start_time = GETDATE();
+
 	TRUNCATE TABLE bronze.csti_customer_shopping_behavior;
 
 	PRINT '================================';
@@ -41,18 +49,25 @@ BEGIN
 			ERRORFILE = 'C:\SQL CSTI\csv_error_log.txt'
 		);
 
+	SET @rows_inserted = @@ROWCOUNT;
 	SET @end_time = GETDATE();
+	SET @status = 'Success';
+	SET @duration_seconds = DATEDIFF(second, @start_time, @end_time);
 
 	PRINT '================================';
 	PRINT '>> Bronze Layer Loaded Successfully.';
 	PRINT '================================';
 	PRINT '================================';
-	PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds.';
+	PRINT '>> Load Duration: ' + CAST(@duration_seconds AS NVARCHAR) + ' seconds.';
 	PRINT '================================';
 
 	END TRY
 
 	BEGIN CATCH
+		SET @end_time = GETDATE();
+		SET @status = 'Failed';
+		SET @error_message = ERROR_MESSAGE();
+
 		PRINT '================================';
 		PRINT '>> Error occurred during running Bronze Layer.';
 		PRINT '>> Error Message' + CAST(ERROR_MESSAGE() AS NVARCHAR);
@@ -61,4 +76,28 @@ BEGIN
 		PRINT '>> Error State' + CAST(ERROR_LINE() AS NVARCHAR);
 		PRINT '================================';
 	END CATCH
+
+	-- Audit Log
+	INSERT INTO audit.etl_log (
+		process_name, 
+		schema_name, 
+		table_name, 
+		processed_records, 
+		start_time,
+		end_time,
+		duration_seconds,
+		status,
+		error_message
+	)
+	VALUES (
+		'load_bronze', 
+		'bronze', 
+		'csti_customer_shopping_behavior', 
+		@rows_inserted, 
+		@start_time,
+		@end_time, 
+		@duration_seconds,
+		@status, 
+		@error_message
+	);
 END
