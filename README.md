@@ -10,40 +10,52 @@ sql-customer-shopping-trends-in-india-data-warehouse/
 │   ├── customer_shopping_behavior.csv
 │   ├── customer_shopping_behavior_renamed_columns.csv
 ├── dwh/docs/                        # Documentation
-│   ├── naming_conventions.md           # Naming conventions which are used in this project
-│   ├── data_architecture.drawio        # Draw.io file for data architecture
+│   ├── naming_conventions.md           # Naming conventions used in this project
 │   ├── data_architecture.png           # PNG image of data architecture
-│   ├── data_flow.drawio                # Draw.io file for data flow
 │   ├── data_flow.png                   # PNG image of data flow
-│   ├── data_model.drawio               # Draw.io file for data model
 │   ├── data_model.png                  # PNG image of data model
 │   ├── data_catalog.md                 # Data catalog
-├── dwh/scripts/                     # SQL scripts
+├── dwh/scripts/                     # SQL & Python Orchestration scripts
+│   ├── pipeline_runner.py              # Master Python Orchestrator & Data Quality Runner
 │   ├── rename_columns.py               # Python script for renaming columns to standard format
-│   ├── bronze
+│   ├── audit.etl_log.sql               # Audit schema and etl_log metadata table DDL
+│   ├── bronze/
 │   │   ├── ddl_bronze.sql              # DDL for bronze layer
-│   │   └── proc_load_bronze.sql        # Stored procedure for loading data into bronze layer
-│   ├── silver
+│   │   └── proc_load_bronze.sql        # Stored procedure with audit logging for bronze layer
+│   ├── silver/
 │   │   ├── ddl_silver.sql              # DDL for silver layer
-│   │   ├── proc_load_silver.sql        # Stored procedure for loading data into silver layer
+│   │   ├── proc_load_silver.sql        # Stored procedure with audit logging for silver layer
 │   │   └── quality_checks_silver.sql   # Quality checks for silver layer
-│   ├── gold
+│   ├── gold/
 │   │   ├── ddl_gold.sql                # DDL for gold layer
 │   │   └── quality_checks_gold.sql     # Quality checks for gold layer
-├── dwh/tests/                       # Test scripts
-│   │   └── quality_checks_silver.sql   # Quality checks for silver layer
-│   │   └── quality_checks_gold.sql     # Quality checks for gold layer
+├── dwh/tests/                       # Automated quality test scripts
 └── README.md
 ```
 
 ## 🏗️ Architecture
 ![alt text](dwh/docs/data_architecture.png)
 
-The project follows a **Three-Layer Architecture**:
+The project follows an enterprise **Three-Layer Medallion Architecture**:
 
-1.  **Bronze Layer (Staging)**: Raw ingested data.
-2.  **Silver Layer (Cleaned)**: Cleaned, normalized and standardized data.
-3.  **Gold Layer (Dimensional Model)**: Star schema for analytics.
+1.  **Bronze Layer (Staging)**: Raw ingested data loaded via `proc_load_bronze` with row count and duration tracking.
+2.  **Silver Layer (Cleaned)**: Transformed, cleansed, and standardized data loaded via `proc_load_silver`.
+3.  **Gold Layer (Dimensional Model)**: Star schema (`dim_customers`, `dim_products`, `fact_transactions`) optimized for business analytics.
+4.  **Audit Layer**: Dedicated `audit.etl_log` metadata table capturing process execution stats, record counts, execution duration, and failure error messages.
+
+## Master Pipeline Orchestration & Data Quality
+
+The pipeline is managed by an external Python master orchestrator (`pipeline_runner.py`):
+
+```bash
+python dwh/scripts/pipeline_runner.py
+```
+
+### Key Capabilities:
+- **Automated CSV Preprocessing**: Standardizes raw column headers prior to SQL ingestion.
+- **SQL Execution Control**: Triggers Bronze & Silver procedures automatically.
+- **Data Quality Gateways**: Validates primary key uniqueness, null tolerances, and row count parity across layers before allowing pipeline completion.
+- **Audit Logging**: Logs execution metadata to `audit.etl_log` for full pipeline observability.
 
 ## 📊 Data Flow
 ![alt text](dwh/docs/data_flow.png)
@@ -52,23 +64,21 @@ The project follows a **Three-Layer Architecture**:
 ![alt text](dwh/docs/data_model.png)
 
 ### 🟤 Bronze Layer
-- The columns has been renamed using python script `rename_columns.py` before loading into the bronze layer.
-
-- Raw data read via python script of `customer_shopping_behavior.csv` file and loaded into the bronze layer with a transformed column names as `customer_shopping_behavior_renamed_columns.csv` file.
+- Column headers standardized using `rename_columns.py`.
+- Bulk loaded into `bronze.csti_customer_shopping_behavior`.
 
 ### ⚪ Silver Layer
-Performs Cleaning, Removing Empty and Duplicate Records and Data Standardization.
+Cleanses strings, standardizes NULL values, parses dates/numerics, derives `delivery_speed`, and logs execution stats.
 
 ### 🟡 Gold Layer
-- `dim_customers` - Provides the customers details.
-- `dim_products` - Provides the products details.
-- `fact_transactions` - Provides the transactions details.
-- `agg_customers_summary` - Provides the customers details with their shopping summary.
-- `agg_customer_shopping_platform` - Provides the customers shopping platform details to compare online and offline shopping preferences.
-- `agg_fulfillment_performance` - Provides the fulfillment performance details on basis of delivery time and business logic standards.
+- `dim_customers` - Customer details & demographics.
+- `dim_products` - Product attributes & categories.
+- `fact_transactions` - Granular purchasing transactions.
+- `agg_customers_summary` - Customer aggregate shopping patterns.
+- `agg_customer_shopping_platform` - Online vs offline shopping comparison.
+- `agg_fulfillment_performance` - Fulfillment speed and delivery performance metrics.
 
 ## 🛠️ Tech Stack
-- MS SQL Server 
-- SQL Server Management Studio (SSMS) v22.1.0
-- Python v3.14.5
-- Draw.io v29.7.9
+- **MS SQL Server** & SSMS
+- **Python v3.14** (`pandas`, `pyodbc`)
+- **Draw.io** (Architectural & Dimensional Modeling Diagrams)
