@@ -78,7 +78,17 @@ Cleanses strings, standardizes NULL values, parses dates/numerics, derives `deli
 - `agg_customer_shopping_platform` - Online vs offline shopping comparison.
 - `agg_fulfillment_performance` - Fulfillment speed and delivery performance metrics.
 
+## 📊 Dashboard Preview Using Power BI
+![Power BI Dashboard](dwh/docs/powerbi_dashboard_preview.png)
+
+Connected directly to the **Gold Layer** Star Schema (`fact_transactions`, `dim_customers`, `dim_products`), providing real-time executive visibility into:
+- **Total Revenue & Order Volume**: Key KPI cards displaying ₹18.90M total revenue, 10K completed transactions and Products Return Rate in Percent.
+- **Category Sales Breakdown**: Revenue distribution across Clothing, Footwear, and Accessories.
+- **Gender-wise Sales**: Revenue distribution across Male and Female.
+- **Shopping Mode Performance**: Online vs. Offline purchasing behavior analysis (77.5% Online / 22.5% Offline).
+
 ## 🛠️ Tech Stack
 - **MS SQL Server** & SSMS
 - **Python v3.14** (`pandas`, `pyodbc`)
+- **Microsoft Power BI** (Executive Dashboards & Business Intelligence)
 - **Draw.io** (Architectural & Dimensional Modeling Diagrams)
