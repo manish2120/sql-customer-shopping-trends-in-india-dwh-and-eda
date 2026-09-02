@@ -90,5 +90,5 @@ Connected directly to the **Gold Layer** Star Schema (`fact_transactions`, `dim_
 ## 🛠️ Tech Stack
 - **MS SQL Server** & SSMS
 - **Python v3.14** (`pandas`, `pyodbc`)
-- **Microsoft Power BI** (Executive Dashboards & Business Intelligence)
+- **Microsoft Power BI** (Dashboard Preview)
 - **Draw.io** (Architectural & Dimensional Modeling Diagrams)
