@@ -1,4 +1,4 @@
-# Customer Shopping Trends in India - Data Warehouse & Analytics Project
+# Customer Shopping Trends in India - Data Warehouse & EDA Project
 
 This project implements a **Data Warehouse** for analyzing customer shopping trends in India, following a **Kimball Dimensional Modeling** approach. The solution is built using **SQL Server** and demonstrates the complete ETL (Extract, Transform, Load) process from source tables to a dimensional model.
 
