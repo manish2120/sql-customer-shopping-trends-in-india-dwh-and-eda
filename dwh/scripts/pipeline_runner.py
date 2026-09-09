@@ -16,6 +16,7 @@ Usage:
 
 import os
 import sys
+import schedule
 import time
 import datetime
 import subprocess
@@ -157,7 +158,7 @@ def data_quality_assertions():
         null_tx_count = cursor.fetchone()[0]
         if null_tx_count > 0:
             raise Exception(f"QUALITY FAILURE: Found {null_tx_count} NULL transaction_ids in Silver layer!")
-        print("  [✓] Pass: Zero NULL transaction_ids in Silver Layer.")
+        print("  [+] Pass: Zero NULL transaction_ids in Silver Layer.")
 
         # Quality Check 2: Duplicate Transaction IDs in Silver
         cursor.execute("""
@@ -170,7 +171,7 @@ def data_quality_assertions():
         dups = cursor.fetchall()
         if len(dups) > 0:
             raise Exception(f"QUALITY FAILURE: Found {len(dups)} duplicate transaction_ids in Silver layer!")
-        print("  [✓] Pass: Primary Key Uniqueness verified for transaction_id.")
+        print("  [+] Pass: Primary Key Uniqueness verified for transaction_id.")
 
         # Quality Check 3: Row Count Match between Bronze & Silver
         cursor.execute("SELECT COUNT(*) FROM bronze.csti_customer_shopping_behavior;")
@@ -182,7 +183,7 @@ def data_quality_assertions():
         if bronze_count != silver_count:
             print("  [!] WARNING: Row count mismatch between Bronze and Silver layer!")
         else:
-            print("  [✓] Pass: Row counts match perfectly across Bronze and Silver.")
+            print("  [+] Pass: Row counts match perfectly across Bronze and Silver.")
 
         close_connection(conn, cursor)
         return True
@@ -227,17 +228,17 @@ def main():
     # STEP 1: Pre-process CSV
     if not csv_preprocessing():
         print("[-] Pipeline aborted at Step 1.")
-        sys.exit(1)
+        return
 
     # STEP 2: Run SQL Stored Procedures
     if not execute_sql_pipeline():
         print("[-] Pipeline aborted at Step 2.")
-        sys.exit(1)
+        return
 
     # STEP 3: Run Data Quality Checks
     if not data_quality_assertions():
         print("[-] Pipeline aborted at Step 3 (Quality Checks Failed).")
-        sys.exit(1)
+        return
 
     # STEP 4: Audit Log Summary
     audit_summary_report()
@@ -246,4 +247,16 @@ def main():
     print_header(f"PIPELINE COMPLETED SUCCESSFULLY IN {total_duration} SECONDS")
 
 if __name__ == "__main__":
+    print("[*] Starting Data Pipeline Scheduler...")
+    # Run once immediately on launch
     main()
+
+    # Schedule pipeline execution
+    schedule.every(24).hours.do(main)
+
+    print("\n[*] Scheduler active. Checking for pending jobs every 24 hours... (Press Ctrl+C to stop)")
+    while True:
+        # Checks the scheduled job time
+        schedule.run_pending()
+        time.sleep(1) # delay a scheduled job check for one second
+
